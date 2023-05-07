@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Input from './Utils/Input'
 import { toPng } from 'html-to-image'
 import download from 'downloadjs'
@@ -12,7 +12,8 @@ interface Meme {
 interface MemeData {
   memes: { url: string }[]
 }
-export default function Meme() {
+
+export default function Meme(): JSX.Element {
   const [meme, setMeme] = useState<Meme>({
     randomImage: 'http://i.imgflip.com/28j0te.jpg',
   })
@@ -22,6 +23,8 @@ export default function Meme() {
   const [url, setUrl] = useState('')
   const [color, setColor] = useState('white')
   const colors = ['#FFFFFF', '#000000', '#7C7A7A', '#F7F06D', '#FF0303']
+
+  const nodeRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function getMemes() {
@@ -41,10 +44,9 @@ export default function Meme() {
     }))
   }
 
-  const node: HTMLElement | null = document.getElementById('meme-img')
   function downloadImage(): void {
-    if (node) {
-      toPng(node)
+    if (nodeRef.current) {
+      toPng(nodeRef.current)
         .then((dataURL: string) => {
           download(dataURL, 'meme.png')
         })
@@ -53,19 +55,20 @@ export default function Meme() {
       console.log('Meme image element not found')
     }
   }
+
   return (
     <main className="w-11/12 mx-auto md:flex justify-between border-t-2 border-black border-dotted dark:border-white">
       <section className="md:w-1/2">
-        <div id="meme-img" className="relative flex justify-center py-8">
-          {url ? (
-            <img src={url} className="md:w-full" alt="meme-img" />
-          ) : (
-            <img
-              src={meme.randomImage}
-              alt="suppose its a meme image"
-              className="meme-img"
-            />
-          )}
+        <div
+          id="meme-img"
+          className="relative flex justify-center py-8"
+          ref={nodeRef}
+        >
+          <img
+            src={url ? url : meme.randomImage}
+            className="md:w-full"
+            alt="meme-img"
+          />
           <Draggable bounds="parent">
             <h2
               className={`absolute top-10 font-bold text-3xl uppercase hover:cursor-grabbing`}
